@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
-# Create your models here.
+
 from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
@@ -12,13 +12,14 @@ class UserProfile(models.Model):
     location = models.CharField(max_length=200)
     bio = models.TextField(blank=True, null=True)  # Additional field for biography
     #profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
-
+    def get_fields(self):
+        return [(field.name, getattr(self, field.name)) for field in UserProfile._meta.fields]
+        
     def __str__(self):
         return self.user.username
 
 
-from django.db import models
-from django.contrib.auth.models import User
+
 
 class Project(models.Model):
     name = models.CharField(max_length=255)
