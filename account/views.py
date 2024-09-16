@@ -7,6 +7,8 @@ from .models import *
 from django.contrib.auth import authenticate,login
 from .decorators import unauthenticated_user
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 
 def register(request):
@@ -57,9 +59,29 @@ def home(request):
 
 
 @login_required
+
 def dashboard(request):
     # Filter all projects with 'In Progress' or 'Upcoming' status
     allprojects = Project.objects.filter(status__in=['In Progress', 'Upcoming'])
+    
+    # Set up pagination
+    paginator = Paginator(allprojects, 3)  # Show 3 projects per page
+    page = request.GET.get('page')
+    
+    try:
+        projects = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        projects = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results.
+        projects = paginator.page(paginator.num_pages)
+    
+    for project in projects:
+        if project.max_participants and project.max_participants > 0:
+            project.progress_percentage = (project.participants.count() / project.max_participants) * 100
+        else:
+            project.progress_percentage = 0
 
     user = request.user
     # Fetch the user profile; `get_or_create` returns a tuple (object, created)
@@ -80,8 +102,8 @@ def dashboard(request):
     
     # Pass the filtered projects to the template
     context = {
-        'projects': allprojects,
-        'suggested_projects': suggested_projects,  # Uncommented this line to include suggested projects
+        'projects': projects,  # This now contains the paginated queryset
+        'suggested_projects': suggested_projects,
         'userprojects': userprojects,
         'participating_projects': user_participating_projects,
     }
