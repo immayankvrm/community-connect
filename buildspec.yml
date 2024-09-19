@@ -8,7 +8,8 @@ phases:
       # Install Docker
       - echo "Installing Docker"
       - apt-get update
-      - apt-get install -y docker.io
+      - for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+      - apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       - service docker start
 
   pre_build:
