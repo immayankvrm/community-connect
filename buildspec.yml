@@ -30,17 +30,17 @@ phases:
           my-django-app python manage.py test; then
           echo "Tests failed. Installing mysqlclient."
           docker run --rm \
-            -e DB_NAME=$DB_NAME \
-            -e DB_USER=$DB_USER \
-            -e DB_PASSWORD=$DB_PASSWORD \
-            -e DB_HOST=$DB_HOST \
+          -e RDS_DB_NAME=$RDS_DB_NAME \
+          -e RDS_USERNAME=$RDS_USERNAME \
+          -e RDS_PASSWORD=$RDS_PASSWORD \
+          -e RDS_HOSTNAME=$RDS_HOSTNAME \
             my-django-app pip install mysqlclient
           echo "Re-running tests"
           docker run --rm \
-            -e DB_NAME=$DB_NAME \
-            -e DB_USER=$DB_USER \
-            -e DB_PASSWORD=$DB_PASSWORD \
-            -e DB_HOST=$DB_HOST \
+          -e RDS_DB_NAME=$RDS_DB_NAME \
+          -e RDS_USERNAME=$RDS_USERNAME \
+          -e RDS_PASSWORD=$RDS_PASSWORD \
+          -e RDS_HOSTNAME=$RDS_HOSTNAME \
             my-django-app python manage.py test
         fi
 
