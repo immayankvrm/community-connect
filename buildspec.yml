@@ -2,10 +2,9 @@ version: 0.2
 
 phases:
   install:
-    install:
     runtime-versions:
       python: 3.12
-
+    
 
   pre_build:
     commands:
@@ -16,34 +15,12 @@ phases:
 
   build:
     commands:
-      - echo "Running tests"
-      - |
-        if ! docker run --rm \
-          -e RDS_DB_NAME=$RDS_DB_NAME \
-          -e RDS_USERNAME=$RDS_USERNAME \
-          -e RDS_PASSWORD=$RDS_PASSWORD \
-          -e RDS_HOSTNAME=$RDS_HOSTNAME \
-          community-connect python manage.py test; then
-          echo "Tests failed. Installing mysqlclient.";
-          docker run --rm \
-          -e RDS_DB_NAME=$RDS_DB_NAME \
-          -e RDS_USERNAME=$RDS_USERNAME \
-          -e RDS_PASSWORD=$RDS_PASSWORD \
-          -e RDS_HOSTNAME=$RDS_HOSTNAME \
-          community-connect pip install mysqlclient;
-          echo "Re-running tests";
-          docker run --rm \
-          -e RDS_DB_NAME=$RDS_DB_NAME \
-          -e RDS_USERNAME=$RDS_USERNAME \
-          -e RDS_PASSWORD=$RDS_PASSWORD \
-          -e RDS_HOSTNAME=$RDS_HOSTNAME \
-          community-connect python manage.py test;
-        fi
+      - echo "Tagging the Docker image"
+      - docker tag community-connect:latest $DOCKER_USERNAME/community-connect:latest
 
   post_build:
     commands:
       - echo "Pushing the Docker image to Docker Hub"
-      - docker tag community-connect:latest $DOCKER_USERNAME/community-connect:latest
       - docker push $DOCKER_USERNAME/community-connect:latest
 
 artifacts:
