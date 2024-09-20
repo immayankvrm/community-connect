@@ -12,7 +12,7 @@ phases:
       - echo "Logging in to Docker Hub"
       - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       - echo "Building the Docker image"
-      - docker build -t my-django-app .
+      - docker build -t community-connect .
 
   build:
     commands:
@@ -23,28 +23,28 @@ phases:
           -e RDS_USERNAME=$RDS_USERNAME \
           -e RDS_PASSWORD=$RDS_PASSWORD \
           -e RDS_HOSTNAME=$RDS_HOSTNAME \
-          my-django-app python manage.py test; then
-          echo "Tests failed. Installing mysqlclient."
+          community-connect python manage.py test; then
+          echo "Tests failed. Installing mysqlclient.";
           docker run --rm \
           -e RDS_DB_NAME=$RDS_DB_NAME \
           -e RDS_USERNAME=$RDS_USERNAME \
           -e RDS_PASSWORD=$RDS_PASSWORD \
           -e RDS_HOSTNAME=$RDS_HOSTNAME \
-            my-django-app pip install mysqlclient
-          echo "Re-running tests"
+          community-connect pip install mysqlclient;
+          echo "Re-running tests";
           docker run --rm \
           -e RDS_DB_NAME=$RDS_DB_NAME \
           -e RDS_USERNAME=$RDS_USERNAME \
           -e RDS_PASSWORD=$RDS_PASSWORD \
           -e RDS_HOSTNAME=$RDS_HOSTNAME \
-            my-django-app python manage.py test
+          community-connect python manage.py test;
         fi
 
   post_build:
     commands:
       - echo "Pushing the Docker image to Docker Hub"
-      - docker tag my-django-app:latest $DOCKER_USERNAME/my-django-app:latest
-      - docker push $DOCKER_USERNAME/my-django-app:latest
+      - docker tag community-connect:latest $DOCKER_USERNAME/community-connect:latest
+      - docker push $DOCKER_USERNAME/community-connect:latest
 
 artifacts:
   files:
