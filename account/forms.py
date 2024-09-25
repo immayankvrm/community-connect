@@ -24,4 +24,5 @@ class UserProfileForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'skills', 'availability', 'location', 'bio']
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 4}),
+            'availability': forms.CheckboxInput(),
         }

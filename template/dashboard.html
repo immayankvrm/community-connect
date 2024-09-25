@@ -119,6 +119,8 @@
                 <li><a href="#suggested">Suggested</a></li>
             </ul>
             <a href="{% url 'Profile' %}" class="btn btn-light">View Profile</a>
+            <a href="{% url 'logoutUser' %}" class="btn btn-light">Logout</a>
+
         </div>
     </nav>
 
@@ -132,7 +134,7 @@
         {% endif %}
 
         <h2 id="projects">All Projects</h2>
-        <form class="filter-form" id="project-filter">
+        <form class="filter-form" id="project-filter" method="GET" action="">
             <select name="category" id="category-filter">
                 <option value="">All Categories</option>
                 {% for category in categories %}
@@ -145,9 +147,10 @@
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
             </select>
-            <input type="text" name="search" id="search-filter" placeholder="Search projects...">
+            <input type="text" name="search" id="search-filter" placeholder="Search projects..." value="{{ request.GET.search }}">
             <button type="submit" class="btn">Filter</button>
         </form>
+        
         <div id="project-container" class="grid">
             {% for project in projects %}
                 <div class="card project-card" data-category="{{ project.category }}" data-status="{{ project.status }}">
@@ -246,78 +249,58 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Project filtering
-            const filterForm = document.getElementById('project-filter');
-            const projectCards = document.querySelectorAll('.project-card');
+    const registerButtons = document.querySelectorAll('.register-btn');
+    
+    registerButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.dataset.projectId;
 
-            filterForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const category = document.getElementById('category-filter').value;
-                const status = document.getElementById('status-filter').value;
-                const search = document.getElementById('search-filter').value.toLowerCase();
-
-                projectCards.forEach(card => {
-                    const cardCategory = card.dataset.category;
-                    const cardStatus = card.dataset.status;
-                    const cardContent = card.textContent.toLowerCase();
-
-                    const categoryMatch = !category || cardCategory === category;
-                    const statusMatch = !status || cardStatus === status;
-                    const searchMatch = !search || cardContent.includes(search);
-
-                    if (categoryMatch && statusMatch && searchMatch) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-
-            // AJAX registration
-            const registerButtons = document.querySelectorAll('.register-btn');
-            registerButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const projectId = this.dataset.projectId;
-                    fetch(`/register_for_project/${projectId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.outerHTML = '<div class="ribbon">Registered</div>';
-                            alert(data.message);
-                        } else {
-                            alert(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while registering for the project.');
-                    });
-                });
-            });
-
-            // Helper function to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
+            fetch(`/register_for_project/${projectId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-                return cookieValue;
-            }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    this.outerHTML = '<div class="ribbon">Registered</div>';
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while registering for the project.');
+            });
         });
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+
     </script>
 </body>
 </html>

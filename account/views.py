@@ -9,7 +9,11 @@ from .decorators import unauthenticated_user
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from django.contrib.auth import logout
 
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.db import transaction
 
 def register(request):
     
@@ -63,6 +67,7 @@ def home(request):
 def dashboard(request):
     # Filter all projects with 'In Progress' or 'Upcoming' status
     allprojects = Project.objects.filter(status__in=['In Progress', 'Upcoming'])
+    
     
     # Set up pagination
     paginator = Paginator(allprojects, 3)  # Show 3 projects per page
@@ -148,22 +153,33 @@ def create_profile(request):
 
 
 
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+from .models import Project
+
 @login_required
 def register_for_project(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    user = request.user
-
-    if project.participants.filter(id=user.id).exists():
-        messages.info(request, "You have already registered for this project.",extra_tags='already')
-    else:
-        # Check if the maximum number of participants has been reached
+    if request.method == 'POST':
+        project = get_object_or_404(Project, id=project_id)
+        user = request.user
+        
+        
+        # Check if the user is already registered for the project
+        if project.participants.filter(id=user.id).exists():
+            return JsonResponse({'success': False, 'message': 'You are already registered for this project.'}, status=400)
+        
+        # Check if the project has reached max participants
         if project.max_participants and project.participants.count() >= project.max_participants:
-            messages.info(request, "The maximum number of participants for this project has been reached.",extra_tags='maxparticipant')
-        else:
-            project.participants.add(user)
-            messages.success(request, "You have successfully registered for the project.")
+            return JsonResponse({'success': False, 'message': 'This project is full.'}, status=400)
+        
+        # Register the user for the project
+        project.participants.add(user)
+        return JsonResponse({'success': True, 'message': 'Successfully registered for the project.'}, status=200)
+    
+    # If the request method is not POST, return an error
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
-    return HttpResponse('project_detail')
     #   return redirect('project_detail', project_id=project.id)
 
 
@@ -186,3 +202,55 @@ def register_for_project(request, project_id):
 #     return render(request, 'dashboard.html', context)
 
 
+
+
+def logoutUser(request):
+    logout(request)  # This will log out the user
+    return redirect('loginUser')  # Redirect to the login page after logout
+
+
+
+
+
+
+
+@login_required
+@transaction.atomic
+def edit_profile(request):
+    user = request.user
+    try:
+        profile = user.userprofile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=user)
+
+    if request.method == 'POST':
+        user_form = CreateUserForm(request.POST, instance=user)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        password_form = PasswordChangeForm(user, request.POST)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Your profile has been updated successfully.')
+
+            if password_form.has_changed() and password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Your password was successfully updated!')
+            elif password_form.has_changed():
+                messages.error(request, 'Please correct the error below.')
+
+            return redirect('Profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        user_form = CreateUserForm(instance=user)
+        profile_form = UserProfileForm(instance=profile)
+        password_form = PasswordChangeForm(user)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'password_form': password_form,
+    }
+    return render(request, 'edit_profile.html', context)

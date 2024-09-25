@@ -8,6 +8,8 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('create_profile/', create_profile, name='create_profile'),
     path('my_profile/', Profile, name='Profile'),
-    path('project/<int:project_id>/register/', register_for_project, name='register_for_project'),
+    path('profile/edit/', edit_profile, name='edit_profile'),
+    path('logout/', logoutUser, name='logoutUser'),
+    path('register_for_project/<int:project_id>/', register_for_project, name='register_for_project'),
 
 ]
