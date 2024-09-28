@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-#(2i(&*bni@o+3au2=(19&)+^bm@uh#441z=q81*r$=o^ifxbw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.elasticbeanstalk.com', 'localhost']
 
 
 # Application definition
@@ -80,14 +80,14 @@ WSGI_APPLICATION = 'community_connect.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': os.getenv('RDS_DB_NAME'),
-        # 'USER': os.getenv('RDS_USERNAME'),
-        # 'PASSWORD': os.getenv('RDS_PASSWORD'),
-        # 'HOST': os.getenv('RDS_HOSTNAME'),
-        # 'PORT': os.getenv('RDS_PORT', '3306'),
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('RDS_DB_NAME'),
+        'USER': os.getenv('RDS_USERNAME'),
+        'PASSWORD': os.getenv('RDS_PASSWORD'),
+        'HOST': os.getenv('RDS_HOSTNAME'),
+        'PORT': os.getenv('RDS_PORT', '3306'),
         
     }
 }
